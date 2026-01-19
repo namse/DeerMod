@@ -39,6 +39,7 @@ dependencies {
     mappings loom.officialMojangMappings()
 
     fatJar implementation(files(project(':common').tasks.jar))
+    api project(':common')
     modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
     modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
 }

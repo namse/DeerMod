@@ -1,5 +1,7 @@
 package mei.arisuwu.deermod.entity.waterdeer;
 
+import mei.arisuwu.deermod.api.WaterDeerCropCallback;
+import mei.arisuwu.deermod.api.WaterDeerCropCallbackRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
@@ -37,7 +39,9 @@ public class WaterDeerEatCropGoal extends Goal
         if (targetCrop == null) return false;
         Level world = waterDeer.level();
         BlockState state = world.getBlockState(targetCrop);
-        if (!(state.getBlock() instanceof CropBlock)) return false;
+
+        if (!isCropBlock(world, targetCrop, state)) return false;
+
         double distance = waterDeer.distanceToSqr(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
         return distance < 4.0;
     }
@@ -81,6 +85,14 @@ public class WaterDeerEatCropGoal extends Goal
         if (targetCrop == null) return;
         Level world = waterDeer.level();
         BlockState state = world.getBlockState(targetCrop);
+
+        WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
+        if (callback != null && callback.isCrop(world, targetCrop))
+        {
+            callback.onCropEaten(world, targetCrop, waterDeer);
+            return;
+        }
+
         if (!(state.getBlock() instanceof CropBlock cropBlock)) return;
         int maxAge = cropBlock.getMaxAge();
         int currentAge = cropBlock.getAge(state);
@@ -117,7 +129,7 @@ public class WaterDeerEatCropGoal extends Goal
                 {
                     BlockPos pos = new BlockPos(x, y, z);
                     BlockState state = world.getBlockState(pos);
-                    if (state.getBlock() instanceof CropBlock)
+                    if (isCropBlock(world, pos, state))
                     {
                         double distance = entityPos.distSqr(pos);
                         if (distance < closestDistance)
@@ -130,5 +142,15 @@ public class WaterDeerEatCropGoal extends Goal
             }
         }
         return closest;
+    }
+
+    private boolean isCropBlock(Level world, BlockPos pos, BlockState state)
+    {
+        WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
+        if (callback != null && callback.isCrop(world, pos))
+        {
+            return true;
+        }
+        return state.getBlock() instanceof CropBlock;
     }
 }
