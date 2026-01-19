@@ -7,6 +7,19 @@ base {
     archivesName = "$archives_name-$project.name"
 }
 
+loom {
+    runs {
+        gametest {
+            server()
+            name "Game Test"
+            source sourceSets.main
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/junit.xml"
+            runDir "build/gametest"
+        }
+    }
+}
+
 repositories {
     maven {
         name = "Terraformers"
