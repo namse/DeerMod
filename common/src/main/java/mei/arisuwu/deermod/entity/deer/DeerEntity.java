@@ -40,6 +40,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class DeerEntity extends Animal implements Shearable, ItemSteerable
@@ -61,22 +63,22 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
     {
         goalSelector.addGoal(0, new FloatGoal(this));
         goalSelector.addGoal(0, new ClimbOnTopOfPowderSnowGoal(this, level()));
-        goalSelector.addGoal(1, new PanicGoal(this, 2.0));
-        goalSelector.addGoal(2, new BreedGoal(this, 1.0));
-        goalSelector.addGoal(3, new TemptGoal(
+        goalSelector.addGoal(1, panicGoal = new PanicGoal(this, 2.0));
+        goalSelector.addGoal(2, new MoveToPositionGoal(this, 1.0));
+        goalSelector.addGoal(3, new BreedGoal(this, 1.0));
+        goalSelector.addGoal(4, new TemptGoal(
             this, 1.25,
             stack -> stack.is(ModItems.DEER_CRACKERS_ON_A_STICK.get()),
             false
         ));
-        goalSelector.addGoal(3, new TemptGoal(
+        goalSelector.addGoal(4, new TemptGoal(
             this, 1.25,
             stack -> stack.is(ModTags.DEER_FOOD),
             false
         ));
-        goalSelector.addGoal(4, eatGrassGoal = new EatBlockGoal(this));
-        goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 8.0f, 1));
-        goalSelector.addGoal(6, new RandomLookAroundGoal(this));
-        goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1));
+        goalSelector.addGoal(5, eatGrassGoal = new EatBlockGoal(this));
+        goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0f, 1));
+        goalSelector.addGoal(7, new RandomLookAroundGoal(this));
     }
 
     @Override
@@ -86,6 +88,7 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
         builder.define(RED_NOSE, false);
         builder.define(SHEARED, false);
         builder.define(BOOST_TIME, 0);
+        builder.define(DEER_STATE, DeerState.IDLE.ordinal());
     }
 
     @Override
@@ -103,6 +106,17 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
         super.addAdditionalSaveData(nbt);
         nbt.putBoolean("RedNose", hasRedNose());
         nbt.putBoolean("Sheared", isSheared());
+        nbt.putInt("DeerState", getState().ordinal());
+        nbt.putInt("CurrentTargetIndex", currentTargetIndex);
+
+        int[] positions = new int[targetPositions.size() * 3];
+        for (int i = 0; i < targetPositions.size(); i++) {
+            BlockPos pos = targetPositions.get(i);
+            positions[i * 3] = pos.getX();
+            positions[i * 3 + 1] = pos.getY();
+            positions[i * 3 + 2] = pos.getZ();
+        }
+        nbt.putIntArray("TargetPositions", positions);
     }
 
     @Override
@@ -111,6 +125,18 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
         super.readAdditionalSaveData(nbt);
         nbt.getBoolean("RedNose").ifPresent(this::setRedNose);
         nbt.getBoolean("Sheared").ifPresent(this::setSheared);
+        nbt.getInt("DeerState").ifPresent(ordinal -> {
+            if (ordinal >= 0 && ordinal < DeerState.values().length) {
+                setState(DeerState.values()[ordinal]);
+            }
+        });
+        nbt.getInt("CurrentTargetIndex").ifPresent(index -> currentTargetIndex = index);
+        nbt.getIntArray("TargetPositions").ifPresent(positions -> {
+            targetPositions.clear();
+            for (int i = 0; i + 2 < positions.length; i += 3) {
+                targetPositions.add(new BlockPos(positions[i], positions[i + 1], positions[i + 2]));
+            }
+        });
     }
 
     @Override
@@ -189,6 +215,78 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
     }
 
 
+    // STATE MANAGEMENT
+
+    private static final EntityDataAccessor<Integer> DEER_STATE = SynchedEntityData.defineId(DeerEntity.class, EntityDataSerializers.INT);
+    private final List<BlockPos> targetPositions = new ArrayList<>();
+    private int currentTargetIndex = -1;
+    private PanicGoal panicGoal;
+    private DeerState previousStateBeforePanic = DeerState.IDLE;
+
+    public DeerState getState() {
+        int ordinal = entityData.get(DEER_STATE);
+        if (ordinal >= 0 && ordinal < DeerState.values().length) {
+            return DeerState.values()[ordinal];
+        }
+        return DeerState.IDLE;
+    }
+
+    public void setState(DeerState state) {
+        entityData.set(DEER_STATE, state.ordinal());
+    }
+
+    public void setTargetPositions(List<BlockPos> positions) {
+        targetPositions.clear();
+        targetPositions.addAll(positions);
+        currentTargetIndex = -1;
+        if (!positions.isEmpty()) {
+            selectNextReachableTarget();
+        }
+    }
+
+    public void addTargetPosition(BlockPos pos) {
+        targetPositions.add(pos);
+        if (currentTargetIndex < 0 && getState() == DeerState.IDLE) {
+            selectNextReachableTarget();
+        }
+    }
+
+    public void clearTargetPositions() {
+        targetPositions.clear();
+        currentTargetIndex = -1;
+        if (getState() == DeerState.MOVING) {
+            setState(DeerState.IDLE);
+        }
+    }
+
+    public @Nullable BlockPos getCurrentTarget() {
+        if (currentTargetIndex >= 0 && currentTargetIndex < targetPositions.size()) {
+            return targetPositions.get(currentTargetIndex);
+        }
+        return null;
+    }
+
+    public boolean selectNextReachableTarget() {
+        for (int i = currentTargetIndex + 1; i < targetPositions.size(); i++) {
+            BlockPos pos = targetPositions.get(i);
+            if (getNavigation().createPath(pos, 0) != null) {
+                currentTargetIndex = i;
+                setState(DeerState.MOVING);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<BlockPos> getTargetPositions() {
+        return new ArrayList<>(targetPositions);
+    }
+
+    public int getCurrentTargetIndex() {
+        return currentTargetIndex;
+    }
+
+
     // RED NOSE MECHANICS
 
     private static final EntityDataAccessor<Boolean> RED_NOSE = SynchedEntityData.defineId(DeerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -248,6 +346,32 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
     protected void customServerAiStep(ServerLevel world)
     {
         eatGrassTimer = eatGrassGoal.getEatAnimationTick();
+
+        DeerState currentState = getState();
+
+        if (panicGoal != null && panicGoal.isRunning()) {
+            if (currentState != DeerState.FLEEING) {
+                previousStateBeforePanic = currentState;
+                setState(DeerState.FLEEING);
+            }
+        } else if (currentState == DeerState.FLEEING) {
+            if (currentTargetIndex >= 0 && currentTargetIndex < targetPositions.size()) {
+                setState(DeerState.MOVING);
+            } else {
+                setState(previousStateBeforePanic != DeerState.FLEEING ? previousStateBeforePanic : DeerState.IDLE);
+            }
+        }
+
+        if (eatGrassTimer > 0 && currentState != DeerState.FLEEING) {
+            setState(DeerState.EATING);
+        } else if (currentState == DeerState.EATING && eatGrassTimer == 0) {
+            if (currentTargetIndex >= 0 && currentTargetIndex < targetPositions.size()) {
+                setState(DeerState.MOVING);
+            } else {
+                setState(DeerState.IDLE);
+            }
+        }
+
         super.customServerAiStep(world);
     }
 
