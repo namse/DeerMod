@@ -7,6 +7,19 @@ base {
     archivesName = "$archives_name-$project.name"
 }
 
+loom {
+    runs {
+        gametest {
+            server()
+            name "Game Test"
+            source sourceSets.main
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/junit.xml"
+            runDir "build/gametest"
+        }
+    }
+}
+
 repositories {
     maven {
         name = "Terraformers"
@@ -28,7 +41,6 @@ dependencies {
     fatJar implementation(files(project(':common').tasks.jar))
     modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
     modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
-    modImplementation "com.terraformersmc:modmenu:$modmenu_version"
 }
 
 processResources {

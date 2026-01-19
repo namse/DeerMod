@@ -1,6 +1,7 @@
 package mei.arisuwu.deermod;
 
 import mei.arisuwu.deermod.entity.deer.DeerEntity;
+import mei.arisuwu.deermod.entity.waterdeer.WaterDeerEntity;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -13,10 +14,12 @@ import java.util.function.Supplier;
 public class ModEntities
 {
     public static Supplier<EntityType<DeerEntity>> DEER;
+    public static Supplier<EntityType<WaterDeerEntity>> WATER_DEER;
 
     public ModEntities()
     {
         DEER = registerEntityType("deer", EntityType.Builder.of(DeerEntity::new, MobCategory.CREATURE));
+        WATER_DEER = registerEntityType("water_deer", EntityType.Builder.of(WaterDeerEntity::new, MobCategory.CREATURE).sized(0.9f, 0.9f));
     }
 
     public <T extends Entity> Supplier<EntityType<T>> registerEntityType(String name, EntityType.Builder<T> builder)

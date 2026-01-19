@@ -17,6 +17,9 @@
     ],
     "client": [
       "mei.arisuwu.deermod.fabric.FabricModClient"
+    ],
+    "fabric-gametest": [
+      "mei.arisuwu.deermod.fabric.gametest.WaterDeerGameTest"
     ]
   },
   "depends": {
