@@ -1,18 +1,15 @@
 package mei.arisuwu.deermod.entity.deer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import mei.arisuwu.deermod.ModResourceLocation;
 import mei.arisuwu.deermod.ModModelLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 public class DeerEntityRenderer extends MobRenderer<DeerEntity, DeerEntityRenderState, DeerEntityModel>
 {
     private final static float BASE_SHADOW_RADIUS = 0.75f;
-    private final static float BABY_MULTIPLIER = 0.6f;
 
     public DeerEntityRenderer(EntityRendererProvider.Context context)
     {
@@ -20,7 +17,7 @@ public class DeerEntityRenderer extends MobRenderer<DeerEntity, DeerEntityRender
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(DeerEntityRenderState state)
+    public @NotNull Identifier getTextureLocation(DeerEntityRenderState state)
     {
         return ModResourceLocation.of("textures/entity/deer/deer.png");
     }
@@ -41,14 +38,4 @@ public class DeerEntityRenderer extends MobRenderer<DeerEntity, DeerEntityRender
         deerEntityRenderState.eatGrassAnimationState.copyFrom(deerEntity.eatGrassAnimationState);
     }
 
-    @Override
-    public void render(DeerEntityRenderState livingEntityRenderState, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i)
-    {
-        if(livingEntityRenderState.isBaby)
-            matrixStack.scale(BABY_MULTIPLIER, BABY_MULTIPLIER, BABY_MULTIPLIER);
-        else
-            matrixStack.scale(1, 1, 1);
-
-        super.render(livingEntityRenderState, matrixStack, vertexConsumerProvider, i);
-    }
 }

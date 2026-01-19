@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -94,50 +93,12 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> data)
     {
-        if (BOOST_TIME.equals(data) && level().isClientSide)
+        if (BOOST_TIME.equals(data) && level().isClientSide())
             saddledComponent.boost();
 
         super.onSyncedDataUpdated(data);
     }
 
-    @Override
-    public void addAdditionalSaveData(CompoundTag nbt)
-    {
-        super.addAdditionalSaveData(nbt);
-        nbt.putBoolean("RedNose", hasRedNose());
-        nbt.putBoolean("Sheared", isSheared());
-        nbt.putInt("DeerState", getState().ordinal());
-        nbt.putInt("CurrentTargetIndex", currentTargetIndex);
-
-        int[] positions = new int[targetPositions.size() * 3];
-        for (int i = 0; i < targetPositions.size(); i++) {
-            BlockPos pos = targetPositions.get(i);
-            positions[i * 3] = pos.getX();
-            positions[i * 3 + 1] = pos.getY();
-            positions[i * 3 + 2] = pos.getZ();
-        }
-        nbt.putIntArray("TargetPositions", positions);
-    }
-
-    @Override
-    public void readAdditionalSaveData(CompoundTag nbt)
-    {
-        super.readAdditionalSaveData(nbt);
-        nbt.getBoolean("RedNose").ifPresent(this::setRedNose);
-        nbt.getBoolean("Sheared").ifPresent(this::setSheared);
-        nbt.getInt("DeerState").ifPresent(ordinal -> {
-            if (ordinal >= 0 && ordinal < DeerState.values().length) {
-                setState(DeerState.values()[ordinal]);
-            }
-        });
-        nbt.getInt("CurrentTargetIndex").ifPresent(index -> currentTargetIndex = index);
-        nbt.getIntArray("TargetPositions").ifPresent(positions -> {
-            targetPositions.clear();
-            for (int i = 0; i + 2 < positions.length; i += 3) {
-                targetPositions.add(new BlockPos(positions[i], positions[i + 1], positions[i + 2]));
-            }
-        });
-    }
 
     @Override
     public boolean isFood(ItemStack stack)
@@ -173,7 +134,7 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
             {
                 shear(serverWorld, SoundSource.PLAYERS, itemStack);
                 gameEvent(GameEvent.SHEAR, player);
-                itemStack.hurtAndBreak(1, player, getSlotForHand(hand));
+                itemStack.hurtAndBreak(1, player, hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
                 return InteractionResult.SUCCESS_SERVER;
             }
             return InteractionResult.CONSUME;
@@ -181,7 +142,7 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
 
         if (!isFood(itemStack) && isSaddled() && !isVehicle() && !player.isSecondaryUseActive())
         {
-            if (!level().isClientSide)
+            if (!level().isClientSide())
                 player.startRiding(this);
 
             return InteractionResult.SUCCESS;

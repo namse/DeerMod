@@ -1,38 +1,16 @@
 plugins {
-    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'fabric-loom' version '1.14-SNAPSHOT'
     id 'java'
 }
 
-sourceSets {
-    datagen {
-        compileClasspath += main.output
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-        java {
-
-        }
-    }
-}
-
 repositories {
-    maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:$minecraft_version"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.21.4:2025.03.23@zip")
-    }
+    mappings loom.officialMojangMappings()
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:$fabric_api_version"
-
-    sourceSets.named('datagen') {
-        modImplementation "net.fabricmc:fabric-loader:$fabric_loader_version"
-    }
 }
 
 base {
@@ -47,20 +25,5 @@ jar {
     manifest {
         attributes.put('FMLModType', 'GAMELIBRARY')
         attributes.put('Automatic-Module-Name', 'deermodcommon')
-    }
-}
-
-fabricApi {
-    configureDataGeneration {
-        client = true
-    }
-}
-
-loom {
-    runs {
-        it.getNames().forEach { println it}
-        datagen {
-            source = sourceSets.datagen
-        }
     }
 }

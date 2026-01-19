@@ -27,20 +27,12 @@ public abstract class ModCreativeTabs
 
         entriesMap.put(
             CreativeModeTabs.INGREDIENTS,
-            Set.of(
-                before(Items.BONE, ModItems.ANTLERS),
-                after(Items.FLOWER_BANNER_PATTERN, ModItems.DEER_BANNER_PATTERN)
-            )
+            Set.of(before(Items.BONE, ModItems.ANTLERS))
         );
 
         entriesMap.put(
             CreativeModeTabs.TOOLS_AND_UTILITIES,
             Set.of(after(Items.CARROT_ON_A_STICK, ModItems.DEER_CRACKERS_ON_A_STICK))
-        );
-
-        entriesMap.put(
-            CreativeModeTabs.SPAWN_EGGS,
-            Set.of(before(Items.DOLPHIN_SPAWN_EGG, ModItems.DEER_SPAWN_EGG))
         );
     }
 }

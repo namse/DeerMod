@@ -1,13 +1,11 @@
 package mei.arisuwu.deermod;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.FoodOnAStickItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SpawnEggItem;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -16,16 +14,11 @@ public class ModItems
     public static Supplier<Item> VENISON;
     public static Supplier<Item> COOKED_VENISON;
     public static Supplier<Item> ANTLERS;
-    public static Supplier<Item> DEER_SPAWN_EGG;
     public static Supplier<Item> DEER_CRACKERS;
     public static Supplier<Item> DEER_CRACKERS_ON_A_STICK;
-    public static Supplier<Item> DEER_BANNER_PATTERN;
 
     public ModItems()
     {
-        DEER_SPAWN_EGG =
-            registerItem("deer_spawn_egg", settings -> new SpawnEggItem(ModEntities.DEER.get(), settings));
-
         ANTLERS = registerItem("antlers");
         VENISON = registerFoodItem("venison", ModFoodComponents.VENISON);
         COOKED_VENISON = registerFoodItem("cooked_venison", ModFoodComponents.COOKED_VENISON);
@@ -35,13 +28,6 @@ public class ModItems
             "deer_crackers_on_a_stick",
             settings -> new FoodOnAStickItem<>(ModEntities.DEER.get(), 4, settings),
             new Item.Properties().durability(100)
-        );
-
-        DEER_BANNER_PATTERN = registerItem(
-            "deer_banner_pattern",
-            new Item.Properties()
-                .stacksTo(1)
-                .component(DataComponents.PROVIDES_BANNER_PATTERNS, ModTags.DEER_PATTERN_ITEM)
         );
     }
 

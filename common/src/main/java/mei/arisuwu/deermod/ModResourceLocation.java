@@ -1,11 +1,11 @@
 package mei.arisuwu.deermod;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ModResourceLocation
 {
-    public static ResourceLocation of(String name)
+    public static Identifier of(String name)
     {
-        return ResourceLocation.fromNamespaceAndPath(Mod.MOD_ID, name);
+        return Identifier.fromNamespaceAndPath(Mod.MOD_ID, name);
     }
 }

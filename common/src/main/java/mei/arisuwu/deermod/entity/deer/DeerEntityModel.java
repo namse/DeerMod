@@ -138,6 +138,5 @@ public class DeerEntityModel extends EntityModel<DeerEntityRenderState>
         this.leftFrontLeg.xRot = Mth.cos(f * 0.6662F) * 1.4F * g;
         this.redNose.visible = livingEntityRenderState.hasRedNose;
         this.antlers.visible = !livingEntityRenderState.sheared && !livingEntityRenderState.isBaby;
-        this.animate(livingEntityRenderState.eatGrassAnimationState, EAT_GRASS, livingEntityRenderState.ageInTicks);
     }
 }
