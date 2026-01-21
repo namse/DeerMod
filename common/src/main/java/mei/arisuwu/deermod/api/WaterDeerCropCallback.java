@@ -6,5 +6,8 @@ import net.minecraft.world.level.Level;
 
 public interface WaterDeerCropCallback {
     boolean isCrop(Level level, BlockPos pos);
-    void onCropEaten(Level level, BlockPos pos, Entity waterDeer);
+    /**
+     * @return true if crop was destroyed, false if crop still exists
+     */
+    boolean onCropEaten(Level level, BlockPos pos, Entity waterDeer);
 }

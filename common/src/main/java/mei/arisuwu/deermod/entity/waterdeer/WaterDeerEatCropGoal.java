@@ -75,33 +75,45 @@ public class WaterDeerEatCropGoal extends Goal
         eatingTimer++;
         if (eatingTimer >= EAT_TIME)
         {
-            eatCrop();
-            targetCrop = null;
+            boolean cropDestroyed = eatCrop();
+            if (cropDestroyed)
+            {
+                targetCrop = null;
+            }
+            else
+            {
+                eatingTimer = 0;
+            }
         }
     }
 
-    private void eatCrop()
+    private boolean eatCrop()
     {
-        if (targetCrop == null) return;
+        if (targetCrop == null) return true;
         Level world = waterDeer.level();
         BlockState state = world.getBlockState(targetCrop);
 
         WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
         if (callback != null && callback.isCrop(world, targetCrop))
         {
-            callback.onCropEaten(world, targetCrop, waterDeer);
-            return;
+            return callback.onCropEaten(world, targetCrop, waterDeer);
         }
 
-        if (!(state.getBlock() instanceof CropBlock cropBlock)) return;
+        if (!(state.getBlock() instanceof CropBlock cropBlock)) return true;
         int maxAge = cropBlock.getMaxAge();
         int currentAge = cropBlock.getAge(state);
         int decrease = Math.max(1, (int) (maxAge * GROWTH_DECREASE));
         int newAge = Math.max(0, currentAge - decrease);
         if (newAge == 0)
+        {
             world.destroyBlock(targetCrop, false);
+            return true;
+        }
         else
+        {
             world.setBlock(targetCrop, cropBlock.getStateForAge(newAge), 2);
+            return false;
+        }
     }
 
     private BlockPos findCropInHomeChunk()
