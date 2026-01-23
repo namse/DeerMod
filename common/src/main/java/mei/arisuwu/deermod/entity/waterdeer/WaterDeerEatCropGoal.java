@@ -43,7 +43,7 @@ public class WaterDeerEatCropGoal extends Goal
         if (!isCropBlock(world, targetCrop, state)) return false;
 
         double distance = waterDeer.distanceToSqr(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
-        return distance < 4.0;
+        return distance < 4.0 || waterDeer.getNavigation().isInProgress();
     }
 
     @Override

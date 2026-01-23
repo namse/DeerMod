@@ -5,6 +5,7 @@ import mei.arisuwu.deermod.entity.waterdeer.WaterDeerEntity;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,19 +39,46 @@ public class WaterDeerGameTest
         });
     }
 
-    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 400, required = false)
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 600, required = false)
     public void waterDeerEatCropTest(GameTestHelper helper)
     {
-        helper.setBlock(new BlockPos(2, 1, 2), Blocks.FARMLAND);
-        BlockPos cropPos = new BlockPos(2, 2, 2);
-        BlockState wheatState = Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7);
-        helper.setBlock(cropPos, wheatState);
+        for (int x = 0; x < 9; x++)
+        {
+            for (int z = 0; z < 9; z++)
+            {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.GRASS_BLOCK);
+            }
+        }
 
-        BlockPos spawnPos = new BlockPos(2, 2, 3);
-        WaterDeerEntity waterDeer = helper.spawn(ModEntities.WATER_DEER.get(), spawnPos);
+        final WaterDeerEntity[] deerHolder = new WaterDeerEntity[1];
+        final BlockPos[] cropPosHolder = new BlockPos[1];
 
-        helper.runAfterDelay(350, () -> {
-            BlockState currentState = helper.getBlockState(cropPos);
+        helper.runAfterDelay(10, () -> {
+            BlockPos spawnPos = new BlockPos(4, 2, 4);
+            deerHolder[0] = helper.spawn(ModEntities.WATER_DEER.get(), spawnPos);
+        });
+
+        helper.runAfterDelay(50, () -> {
+            WaterDeerEntity waterDeer = deerHolder[0];
+            Level level = helper.getLevel();
+            BlockPos deerPos = waterDeer.blockPosition();
+
+            BlockPos farmlandPos = deerPos.offset(2, -1, 0);
+            cropPosHolder[0] = deerPos.offset(2, 0, 0);
+
+            level.setBlock(farmlandPos, Blocks.FARMLAND.defaultBlockState(), 3);
+            BlockState wheatState = Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7);
+            level.setBlock(cropPosHolder[0], wheatState, 3);
+        });
+
+        helper.runAfterDelay(550, () -> {
+            if (cropPosHolder[0] == null)
+            {
+                helper.fail("Crop was not placed");
+                return;
+            }
+            Level level = helper.getLevel();
+            BlockState currentState = level.getBlockState(cropPosHolder[0]);
             if (!(currentState.getBlock() instanceof CropBlock))
             {
                 helper.succeed();
