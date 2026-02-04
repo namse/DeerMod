@@ -3,6 +3,10 @@ package mei.arisuwu.deermod.entity.waterdeer;
 import mei.arisuwu.deermod.api.WaterDeerCropCallback;
 import mei.arisuwu.deermod.api.WaterDeerCropCallbackRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
@@ -96,6 +100,7 @@ public class WaterDeerEatCropGoal extends Goal
         WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
         if (callback != null && callback.isCrop(world, targetCrop))
         {
+            playEatEffects(world);
             return callback.onCropEaten(world, targetCrop, waterDeer);
         }
 
@@ -104,6 +109,9 @@ public class WaterDeerEatCropGoal extends Goal
         int currentAge = cropBlock.getAge(state);
         int decrease = Math.max(1, (int) (maxAge * GROWTH_DECREASE));
         int newAge = Math.max(0, currentAge - decrease);
+
+        playEatEffects(world);
+
         if (newAge == 0)
         {
             world.destroyBlock(targetCrop, false);
@@ -113,6 +121,33 @@ public class WaterDeerEatCropGoal extends Goal
         {
             world.setBlock(targetCrop, cropBlock.getStateForAge(newAge), 2);
             return false;
+        }
+    }
+
+    private void playEatEffects(Level world)
+    {
+        if (world instanceof ServerLevel serverLevel)
+        {
+            double x = waterDeer.getX();
+            double y = waterDeer.getY() + waterDeer.getEyeHeight() * 0.8;
+            double z = waterDeer.getZ();
+
+            serverLevel.playSound(
+                null,
+                waterDeer.blockPosition(),
+                SoundEvents.GENERIC_EAT.value(),
+                SoundSource.NEUTRAL,
+                1.0f,
+                1.0f + (waterDeer.getRandom().nextFloat() - 0.5f) * 0.2f
+            );
+
+            serverLevel.sendParticles(
+                ParticleTypes.HAPPY_VILLAGER,
+                x, y, z,
+                5,
+                0.3, 0.3, 0.3,
+                0.0
+            );
         }
     }
 
