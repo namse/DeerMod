@@ -33,5 +33,6 @@ public class WaterDeerRenderer extends MobRenderer<WaterDeerEntity, WaterDeerRen
     public void extractRenderState(WaterDeerEntity entity, WaterDeerRenderState state, float delta)
     {
         super.extractRenderState(entity, state, delta);
+        state.eatGrassAnimationState.copyFrom(entity.eatGrassAnimationState);
     }
 }

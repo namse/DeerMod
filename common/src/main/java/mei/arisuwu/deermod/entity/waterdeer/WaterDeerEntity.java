@@ -5,6 +5,8 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.AnimationState;
+import net.minecraft.world.entity.EntityEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -26,6 +28,9 @@ public class WaterDeerEntity extends Animal
     private int homeChunkZ;
     private boolean homeChunkSet = false;
     private PanicGoal panicGoal;
+
+    public final AnimationState eatGrassAnimationState = new AnimationState();
+    private int eatGrassTimer = 0;
 
     public static AttributeSupplier.Builder createAttributes()
     {
@@ -75,6 +80,7 @@ public class WaterDeerEntity extends Animal
     public void tick()
     {
         super.tick();
+        updateEatGrassAnimation();
 
         if (!level().isClientSide() && !homeChunkSet)
         {
@@ -97,6 +103,36 @@ public class WaterDeerEntity extends Animal
 
             updateState(currentChunkX, currentChunkZ);
         }
+    }
+
+    @Override
+    public void aiStep()
+    {
+        if (level().isClientSide())
+            eatGrassTimer = Math.max(0, eatGrassTimer - 1);
+        super.aiStep();
+    }
+
+    @Override
+    public void handleEntityEvent(byte status)
+    {
+        if (status == EntityEvent.EAT_GRASS)
+            eatGrassTimer = 40;
+        super.handleEntityEvent(status);
+    }
+
+    private void updateEatGrassAnimation()
+    {
+        if (eatGrassTimer > 0)
+            eatGrassAnimationState.startIfStopped(tickCount);
+        else
+            eatGrassAnimationState.stop();
+    }
+
+    public void triggerEatAnimation()
+    {
+        if (!level().isClientSide())
+            level().broadcastEntityEvent(this, EntityEvent.EAT_GRASS);
     }
 
     private void updateState(int currentChunkX, int currentChunkZ)

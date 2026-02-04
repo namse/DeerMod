@@ -87,6 +87,10 @@ public class WaterDeerEatCropGoal extends Goal
             moveToTarget();
             return;
         }
+        if (eatingTimer == 0)
+        {
+            waterDeer.triggerEatAnimation();
+        }
         eatingTimer++;
         if (eatingTimer >= EAT_TIME)
         {
