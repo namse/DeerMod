@@ -3,8 +3,10 @@ package mei.arisuwu.deermod.entity.waterdeer;
 import mei.arisuwu.deermod.api.WaterDeerCropCallback;
 import mei.arisuwu.deermod.api.WaterDeerCropCallbackRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -102,7 +104,7 @@ public class WaterDeerEatCropGoal extends Goal
         WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
         if (callback != null && callback.isCrop(world, targetCrop))
         {
-            playEatEffects(world);
+            playEatEffects(world, state);
             return callback.onCropEaten(world, targetCrop, waterDeer);
         }
 
@@ -112,7 +114,7 @@ public class WaterDeerEatCropGoal extends Goal
         int decrease = Math.max(1, (int) (maxAge * GROWTH_DECREASE));
         int newAge = Math.max(0, currentAge - decrease);
 
-        playEatEffects(world);
+        playEatEffects(world, state);
 
         if (newAge == 0)
         {
@@ -126,7 +128,7 @@ public class WaterDeerEatCropGoal extends Goal
         }
     }
 
-    private void playEatEffects(Level world)
+    private void playEatEffects(Level world, BlockState cropState)
     {
         if (world instanceof ServerLevel serverLevel)
         {
@@ -143,12 +145,13 @@ public class WaterDeerEatCropGoal extends Goal
                 1.0f + (waterDeer.getRandom().nextFloat() - 0.5f) * 0.2f
             );
 
+            ItemStack cropItem = new ItemStack(cropState.getBlock());
             serverLevel.sendParticles(
-                ParticleTypes.HAPPY_VILLAGER,
+                new ItemParticleOption(ParticleTypes.ITEM, cropItem),
                 x, y, z,
-                5,
-                0.3, 0.3, 0.3,
-                0.0
+                8,
+                0.2, 0.2, 0.2,
+                0.05
             );
         }
     }
