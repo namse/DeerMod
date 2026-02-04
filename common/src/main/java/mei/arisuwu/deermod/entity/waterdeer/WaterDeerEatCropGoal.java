@@ -7,6 +7,7 @@ import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -104,7 +105,7 @@ public class WaterDeerEatCropGoal extends Goal
         WaterDeerCropCallback callback = WaterDeerCropCallbackRegistry.get();
         if (callback != null && callback.isCrop(world, targetCrop))
         {
-            playEatEffects(world, state);
+            playEatEffects(world);
             return callback.onCropEaten(world, targetCrop, waterDeer);
         }
 
@@ -114,7 +115,7 @@ public class WaterDeerEatCropGoal extends Goal
         int decrease = Math.max(1, (int) (maxAge * GROWTH_DECREASE));
         int newAge = Math.max(0, currentAge - decrease);
 
-        playEatEffects(world, state);
+        playEatEffects(world);
 
         if (newAge == 0)
         {
@@ -128,7 +129,7 @@ public class WaterDeerEatCropGoal extends Goal
         }
     }
 
-    private void playEatEffects(Level world, BlockState cropState)
+    private void playEatEffects(Level world)
     {
         if (world instanceof ServerLevel serverLevel)
         {
@@ -145,17 +146,13 @@ public class WaterDeerEatCropGoal extends Goal
                 1.0f + (waterDeer.getRandom().nextFloat() - 0.5f) * 0.2f
             );
 
-            ItemStack cropItem = new ItemStack(cropState.getBlock());
-            if (!cropItem.isEmpty())
-            {
-                serverLevel.sendParticles(
-                    new ItemParticleOption(ParticleTypes.ITEM, cropItem),
-                    x, y, z,
-                    8,
-                    0.2, 0.2, 0.2,
-                    0.05
-                );
-            }
+            serverLevel.sendParticles(
+                new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.WHEAT_SEEDS)),
+                x, y, z,
+                8,
+                0.2, 0.2, 0.2,
+                0.05
+            );
         }
     }
 
