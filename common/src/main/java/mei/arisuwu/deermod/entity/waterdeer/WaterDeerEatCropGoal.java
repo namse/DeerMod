@@ -19,7 +19,7 @@ import java.util.EnumSet;
 public class WaterDeerEatCropGoal extends Goal
 {
     private static final int SEARCH_RANGE = 8;
-    private static final int EAT_TIME = 30;
+    private static final int EAT_TIME = 15;
     private static final float GROWTH_DECREASE = 0.15f;
 
     private final WaterDeerEntity waterDeer;
@@ -93,17 +93,17 @@ public class WaterDeerEatCropGoal extends Goal
             waterDeer.triggerEatAnimation();
         }
         eatingTimer++;
-        if (eatingTimer >= EAT_TIME)
+        if (eatingTimer == EAT_TIME / 2)
         {
             boolean cropDestroyed = eatCrop();
             if (cropDestroyed)
             {
                 targetCrop = null;
             }
-            else
-            {
-                eatingTimer = 0;
-            }
+        }
+        if (eatingTimer >= EAT_TIME && targetCrop != null)
+        {
+            eatingTimer = 0;
         }
     }
 
