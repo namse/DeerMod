@@ -146,13 +146,16 @@ public class WaterDeerEatCropGoal extends Goal
             );
 
             ItemStack cropItem = new ItemStack(cropState.getBlock());
-            serverLevel.sendParticles(
-                new ItemParticleOption(ParticleTypes.ITEM, cropItem),
-                x, y, z,
-                8,
-                0.2, 0.2, 0.2,
-                0.05
-            );
+            if (!cropItem.isEmpty())
+            {
+                serverLevel.sendParticles(
+                    new ItemParticleOption(ParticleTypes.ITEM, cropItem),
+                    x, y, z,
+                    8,
+                    0.2, 0.2, 0.2,
+                    0.05
+                );
+            }
         }
     }
 
