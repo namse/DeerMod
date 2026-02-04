@@ -82,7 +82,8 @@ public class WaterDeerEatCropGoal extends Goal
         if (targetCrop == null) return;
         waterDeer.getLookControl().setLookAt(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
         double distanceXZ = Math.pow(waterDeer.getX() - (targetCrop.getX() + 0.5), 2) + Math.pow(waterDeer.getZ() - (targetCrop.getZ() + 0.5), 2);
-        if (distanceXZ > 1.0)
+        double distanceY = Math.abs(waterDeer.getY() - targetCrop.getY());
+        if (distanceXZ > 1.0 || distanceY > 0.5)
         {
             moveToTarget();
             return;
