@@ -117,7 +117,10 @@ public class WaterDeerEntity extends Animal
     public void handleEntityEvent(byte status)
     {
         if (status == EntityEvent.EAT_GRASS)
+        {
             eatGrassTimer = 40;
+            eatGrassAnimationState.stop();
+        }
         super.handleEntityEvent(status);
     }
 

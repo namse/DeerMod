@@ -18,13 +18,21 @@ import java.util.EnumSet;
 
 public class WaterDeerEatCropGoal extends Goal
 {
+    private enum EatingPhase
+    {
+        APPROACHING,
+        EATING
+    }
+
     private static final int SEARCH_RANGE = 8;
-    private static final int EAT_TIME = 15;
+    private static final int ANIMATION_DURATION = 40;
+    private static final int EAT_EFFECT_TICK = 20;
     private static final float GROWTH_DECREASE = 0.15f;
 
     private final WaterDeerEntity waterDeer;
     private BlockPos targetCrop;
-    private int eatingTimer;
+    private EatingPhase phase;
+    private int eatingTicks;
 
     public WaterDeerEatCropGoal(WaterDeerEntity waterDeer)
     {
@@ -56,7 +64,8 @@ public class WaterDeerEatCropGoal extends Goal
     @Override
     public void start()
     {
-        eatingTimer = 0;
+        phase = EatingPhase.APPROACHING;
+        eatingTicks = 0;
         waterDeer.setWaterDeerState(WaterDeerState.EATING);
         if (targetCrop != null)
             moveToTarget();
@@ -72,7 +81,8 @@ public class WaterDeerEatCropGoal extends Goal
     public void stop()
     {
         targetCrop = null;
-        eatingTimer = 0;
+        phase = EatingPhase.APPROACHING;
+        eatingTicks = 0;
         waterDeer.setWaterDeerState(WaterDeerState.IDLE);
     }
 
@@ -80,30 +90,50 @@ public class WaterDeerEatCropGoal extends Goal
     public void tick()
     {
         if (targetCrop == null) return;
+
+        switch (phase)
+        {
+            case APPROACHING -> tickApproaching();
+            case EATING -> tickEating();
+        }
+    }
+
+    private void tickApproaching()
+    {
         waterDeer.getLookControl().setLookAt(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
         double distanceXZ = Math.pow(waterDeer.getX() - (targetCrop.getX() + 0.5), 2) + Math.pow(waterDeer.getZ() - (targetCrop.getZ() + 0.5), 2);
         double distanceY = Math.abs(waterDeer.getY() - targetCrop.getY());
+
         if (distanceXZ > 1.0 || distanceY > 0.5)
         {
             moveToTarget();
             return;
         }
-        if (eatingTimer == 0)
-        {
-            waterDeer.triggerEatAnimation();
-        }
-        eatingTimer++;
-        if (eatingTimer == EAT_TIME / 2)
+
+        phase = EatingPhase.EATING;
+        eatingTicks = 0;
+        waterDeer.triggerEatAnimation();
+    }
+
+    private void tickEating()
+    {
+        waterDeer.getLookControl().setLookAt(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
+        eatingTicks++;
+
+        if (eatingTicks == EAT_EFFECT_TICK)
         {
             boolean cropDestroyed = eatCrop();
             if (cropDestroyed)
             {
                 targetCrop = null;
+                return;
             }
         }
-        if (eatingTimer >= EAT_TIME && targetCrop != null)
+
+        if (eatingTicks >= ANIMATION_DURATION && targetCrop != null)
         {
-            eatingTimer = 0;
+            eatingTicks = 0;
+            waterDeer.triggerEatAnimation();
         }
     }
 
