@@ -19,7 +19,7 @@ import java.util.EnumSet;
 public class WaterDeerEatCropGoal extends Goal
 {
     private static final int SEARCH_RANGE = 8;
-    private static final int EAT_TIME = 60;
+    private static final int EAT_TIME = 30;
     private static final float GROWTH_DECREASE = 0.15f;
 
     private final WaterDeerEntity waterDeer;
@@ -49,8 +49,8 @@ public class WaterDeerEatCropGoal extends Goal
 
         if (!isCropBlock(world, targetCrop, state)) return false;
 
-        double distance = waterDeer.distanceToSqr(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
-        return distance < 4.0 || waterDeer.getNavigation().isInProgress();
+        double distanceXZ = Math.pow(waterDeer.getX() - (targetCrop.getX() + 0.5), 2) + Math.pow(waterDeer.getZ() - (targetCrop.getZ() + 0.5), 2);
+        return distanceXZ < 4.0 || waterDeer.getNavigation().isInProgress();
     }
 
     @Override
@@ -59,7 +59,13 @@ public class WaterDeerEatCropGoal extends Goal
         eatingTimer = 0;
         waterDeer.setWaterDeerState(WaterDeerState.EATING);
         if (targetCrop != null)
-            waterDeer.getNavigation().moveTo(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5, 1.0);
+            moveToTarget();
+    }
+
+    private void moveToTarget()
+    {
+        if (targetCrop == null) return;
+        waterDeer.getNavigation().moveTo(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5, 1.0);
     }
 
     @Override
@@ -75,10 +81,10 @@ public class WaterDeerEatCropGoal extends Goal
     {
         if (targetCrop == null) return;
         waterDeer.getLookControl().setLookAt(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
-        double distance = waterDeer.distanceToSqr(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5);
-        if (distance > 2.0)
+        double distanceXZ = Math.pow(waterDeer.getX() - (targetCrop.getX() + 0.5), 2) + Math.pow(waterDeer.getZ() - (targetCrop.getZ() + 0.5), 2);
+        if (distanceXZ > 1.0)
         {
-            waterDeer.getNavigation().moveTo(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5, 1.0);
+            moveToTarget();
             return;
         }
         eatingTimer++;
