@@ -61,7 +61,6 @@ public class DeerEntity extends Animal implements Shearable, ItemSteerable
     protected void registerGoals()
     {
         goalSelector.addGoal(0, new FloatGoal(this));
-        goalSelector.addGoal(0, new ClimbOnTopOfPowderSnowGoal(this, level()));
         goalSelector.addGoal(1, panicGoal = new PanicGoal(this, 2.0));
         goalSelector.addGoal(2, new MoveToPositionGoal(this, 1.0));
         goalSelector.addGoal(3, new BreedGoal(this, 1.0));
