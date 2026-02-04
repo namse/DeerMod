@@ -54,6 +54,7 @@ public class WaterDeerEatCropGoal extends Goal
     public void start()
     {
         eatingTimer = 0;
+        waterDeer.setWaterDeerState(WaterDeerState.EATING);
         if (targetCrop != null)
             waterDeer.getNavigation().moveTo(targetCrop.getX() + 0.5, targetCrop.getY(), targetCrop.getZ() + 0.5, 1.0);
     }
@@ -63,6 +64,7 @@ public class WaterDeerEatCropGoal extends Goal
     {
         targetCrop = null;
         eatingTimer = 0;
+        waterDeer.setWaterDeerState(WaterDeerState.IDLE);
     }
 
     @Override
